@@ -1,0 +1,3 @@
+C:/Users/Dell/source/repos/RogueLikeGame/build/CMakeFiles/RogueLikeGame.dir
+C:/Users/Dell/source/repos/RogueLikeGame/build/CMakeFiles/edit_cache.dir
+C:/Users/Dell/source/repos/RogueLikeGame/build/CMakeFiles/rebuild_cache.dir

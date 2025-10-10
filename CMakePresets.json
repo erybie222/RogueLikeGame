@@ -1,0 +1,39 @@
+{
+  "version": 3,
+
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug (Ninja)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release (Ninja)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "debug-build",   "configurePreset": "debug" },
+    { "name": "release-build", "configurePreset": "release" },
+
+    { "name": "debug-run",   "configurePreset": "debug",   "targets": ["run"] },
+    { "name": "release-run", "configurePreset": "release", "targets": ["run"] }
+  ],
+
+  "testPresets": [
+    { "name": "debug-test",   "configurePreset": "debug" },
+    { "name": "release-test", "configurePreset": "release" }
+  ]
+}

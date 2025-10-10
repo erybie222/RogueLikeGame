@@ -45,3 +45,5 @@ bin/
 obj/
 
 /build/
+.idea/
+CppProperties.json

@@ -1,0 +1,15 @@
+{
+  "name": "roguelikegame",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "glfw3",
+    "glm",
+    "vulkan-headers",
+    "vulkan-loader",
+    {
+      "name": "imgui",
+      "default-features": true,
+      "features": ["glfw-binding", "vulkan-binding"]
+    }
+  ]
+}

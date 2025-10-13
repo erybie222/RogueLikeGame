@@ -2,34 +2,92 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "debug",
-      "displayName": "Debug (Ninja)",
+      "name": "win-debug",
+      "displayName": "Windows Debug (Ninja)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug",
+      "binaryDir": "${sourceDir}/build/win-debug",
       "cacheVariables": {
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     },
     {
-      "name": "release",
-      "displayName": "Release (Ninja)",
+      "name": "win-release",
+      "displayName": "Windows Release (Ninja)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release",
+      "binaryDir": "${sourceDir}/build/win-release",
       "cacheVariables": {
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug (Ninja, arm64)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release (Ninja, arm64)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-release",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       }
     }
   ],
   "buildPresets": [
-    { "name": "debug-build", "configurePreset": "debug" },
-    { "name": "release-build", "configurePreset": "release" }
+    { "name": "win-debug-build", "configurePreset": "win-debug" },
+    { "name": "win-release-build", "configurePreset": "win-release" },
+    { "name": "macos-debug-build", "configurePreset": "macos-debug" },
+    { "name": "macos-release-build", "configurePreset": "macos-release" }
   ]
 }

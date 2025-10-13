@@ -11,6 +11,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Wyjścia binarek do build/<cfg>/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# ===== Opcjonalne zależności z vcpkg =====
+# Automatycznie włącz, jeśli używany jest toolchain vcpkg; w przeciwnym razie wyłącz.
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(_USE_VCPKG_DEFAULT ON)
+else()
+    set(_USE_VCPKG_DEFAULT OFF)
+endif()
+option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui)" ${_USE_VCPKG_DEFAULT})
+
 # ===== Sources =====
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
@@ -20,29 +29,30 @@ add_executable(RogueLikeGame
 # Jeśli masz własne nagłówki w ./include
 target_include_directories(RogueLikeGame PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-# ===== Dependencies z vcpkg =====
-# Wymaga: CMAKE_TOOLCHAIN_FILE ustawionego na extern/vcpkg/scripts/buildsystems/vcpkg.cmake
-# (w CMakePresets.json lub w opcjach CLion)
+# ===== Dependencies z vcpkg (opcjonalne) =====
+if(ENABLE_VCPKG_DEPS)
+    # GLFW
+    find_package(glfw3 CONFIG REQUIRED)
 
-# GLFW
-find_package(glfw3 CONFIG REQUIRED)
+    # GLM
+    find_package(glm CONFIG REQUIRED)
 
-# GLM
-find_package(glm CONFIG REQUIRED)
+    # Vulkan (loader + headers). W systemie musisz mieć runtime/sterownik Vulkan.
+    find_package(Vulkan REQUIRED)
 
-# Vulkan (loader + headers). W systemie musisz mieć runtime/sterownik Vulkan.
-find_package(Vulkan REQUIRED)
+    # ImGui z backendami (w vcpkg włącz: imgui[glfw-binding,vulkan-binding])
+    find_package(imgui CONFIG REQUIRED)
 
-# ImGui z backendami (w vcpkg włącz: imgui[glfw-binding,vulkan-binding])
-find_package(imgui CONFIG REQUIRED)
-
-# Linkowanie
-target_link_libraries(RogueLikeGame PRIVATE
-        imgui::imgui
-        glfw              # z pakietu glfw3
-        Vulkan::Vulkan
-        glm::glm
-)
+    # Linkowanie
+    target_link_libraries(RogueLikeGame PRIVATE
+            imgui::imgui
+            glfw              # z pakietu glfw3
+            Vulkan::Vulkan
+            glm::glm
+    )
+else()
+    message(STATUS "ENABLE_VCPKG_DEPS=OFF -> budujemy bez zewnętrznych bibliotek (Hello World)")
+endif()
 
 # ===== Warnings / kompilator =====
 if(MSVC)

@@ -49,7 +49,7 @@ Build i uruchomienie z vcpkg (PowerShell):
 
 ```powershell
 cmake --preset win-debug
-cmake --build --preset win-debug-build -j 6
+cmake --build --preset win-debug-build
 ./build/win-debug/bin/RogueLikeGame.exe
 ```
 
@@ -96,3 +96,23 @@ Windows:
 - `vcpkg.json` – manifest zależności vcpkg (GLFW, GLM, Vulkan, ImGui z backendami GLFW/Vulkan).
 - `extern/vcpkg` – kopia vcpkg w repo (submoduł).
 - `src/main.cpp` – prosta aplikacja Hello World.
+
+fix to swithing x86 to x64 on windows:
+# (opcjonalnie) czyść stary cache presetu
+Remove-Item -Recurse -Force .\build\win-debug -ErrorAction Ignore
+
+# załaduj środowisko VS 2022: host x64, target x64  ✅
+cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -host_arch=x64 -arch=x64 && set' |
+  ForEach-Object {
+    if ($_ -match '^(INCLUDE|LIB|LIBPATH|PATH)=') {
+      $n,$v = $_ -split '=',2
+      Set-Item -Path Env:$n -Value $v
+    }
+  }
+
+ (krótka kontrola – powinno pokazać HostX64 przed HostX86):
+ ($env:PATH -split ';' | Select-String 'MSVC\\.*\\bin\\Host')
+
+cmake --preset win-debug          # konfiguracja (Debug)
+cmake --build --preset win-debug-build   # kompilacja
+./build/win-debug/bin/RogueLikeGame.exe

@@ -11,6 +11,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Wyjścia binarek do build/<cfg>/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# ===== Opcje jakości =====
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+
 # ===== Opcjonalne zależności z vcpkg =====
 # Automatycznie włącz, jeśli używany jest toolchain vcpkg; w przeciwnym razie wyłącz.
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -64,14 +67,30 @@ endif()
 # ===== Warnings / kompilator =====
 if(MSVC)
     target_compile_options(RogueLikeGame PRIVATE /W4 /permissive- /Zc:preprocessor)
+    if(WARNINGS_AS_ERRORS)
+        target_compile_options(RogueLikeGame PRIVATE /WX)
+    endif()
 else()
     target_compile_options(RogueLikeGame PRIVATE -Wall -Wextra -Wpedantic)
+    if(WARNINGS_AS_ERRORS)
+        target_compile_options(RogueLikeGame PRIVATE -Werror)
+    endif()
 endif()
 
-# ===== Definitions przydatne dla ImGui backendów (opcjonalnie) =====
-# Wcześniej było IMGUI_DISABLE_OBSOLETE_FUNCTIONS; usunięto, aby uniknąć ABI mismatch
-# z prekompilowaną biblioteką imgui z vcpkg (assert: "Mismatched struct layout!").
-# Jeśli chcesz użyć takich makr, skompiluj również imgui z identycznymi ustawieniami.
+# ===== Platformowe definicje =====
+if(WIN32)
+    target_compile_definitions(RogueLikeGame PRIVATE VK_USE_PLATFORM_WIN32_KHR NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
+# ===== Testy (smoke test) =====
+include(CTest)
+if(BUILD_TESTING)
+    enable_testing()
+    # Uruchamia executable z parametrem --smoke
+    add_test(NAME smoke
+        COMMAND $<TARGET_FILE:RogueLikeGame> --smoke
+        WORKING_DIRECTORY $<TARGET_FILE_DIR:RogueLikeGame>)
+endif()
 
 # ===== Windows: kopiowanie dll (opcjonalnie) =====
 # Jeśli potrzeba, możesz dodać reguły kopiujące wymagane .dll do folderu bin.

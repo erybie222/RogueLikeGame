@@ -1,4 +1,5 @@
 #include "VulkanImGuiApp.h"
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <iostream>
 
@@ -16,4 +17,3 @@ void VulkanImGuiApp::initWindow()
     window_ = glfwCreateWindow(1280, 720, "RogueLikeGame", nullptr, nullptr);
     if (!window_) throw std::runtime_error("Failed to create GLFW window");
 }
-

@@ -1,4 +1,5 @@
 #include "VulkanImGuiApp.h"
+#include <GLFW/glfw3.h>
 #include <vk_utils.h>
 #include <vector>
 #include <cstring>
@@ -123,4 +124,3 @@ bool VulkanImGuiApp::checkValidationLayerSupport(const std::vector<const char*>&
     }
     return true;
 }
-

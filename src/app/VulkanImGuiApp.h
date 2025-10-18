@@ -1,16 +1,13 @@
 #pragma once
 
-#ifdef _WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
-#endif
-
 #include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
-#include <imgui.h>
 
+// Forward declaration to avoid including GLFW in public header
+struct GLFWwindow;
+
+#include <cstdint>
 #include <vector>
 #include <optional>
-#include <set>
 
 class VulkanImGuiApp {
 public:

@@ -1,5 +1,7 @@
 #include "VulkanImGuiApp.h"
+#include <GLFW/glfw3.h>
 #include <vk_utils.h>
+#include <imgui.h>
 #include <imgui_impl_vulkan.h>
 #include <algorithm>
 

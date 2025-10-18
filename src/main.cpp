@@ -1,6 +1,10 @@
-#include <iostream>
+#include "app/VulkanImGuiApp.h"
+#include <string>
 
-int main() {
-	std::cout << "Hello World!" << std::endl;
-	return 0;
+int main(int argc, char** argv) {
+    VulkanImGuiApp app;
+    if (argc > 1 && argv[1] && std::string(argv[1]) == "--smoke") {
+        return app.runSmokeTest();
+    }
+    return app.run();
 }

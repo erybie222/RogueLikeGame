@@ -24,6 +24,7 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
         src/main.cpp
+        src/app/VulkanImGuiApp.cpp
 )
 
 # Jeśli masz własne nagłówki w ./include
@@ -62,13 +63,22 @@ else()
 endif()
 
 # ===== Definitions przydatne dla ImGui backendów (opcjonalnie) =====
-# Jeżeli w kodzie korzystasz z backendów ImGui_ImplGlfw/ImGui_ImplVulkan,
-# te define'y bywają pomocne; włącz/wyłącz w zależności od potrzeb.
-target_compile_definitions(RogueLikeGame PRIVATE
-        IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-)
+# Wcześniej było IMGUI_DISABLE_OBSOLETE_FUNCTIONS; usunięto, aby uniknąć ABI mismatch
+# z prekompilowaną biblioteką imgui z vcpkg (assert: "Mismatched struct layout!").
+# Jeśli chcesz użyć takich makr, skompiluj również imgui z identycznymi ustawieniami.
 
 # ===== Windows: kopiowanie dll (opcjonalnie) =====
 # Jeśli potrzeba, możesz dodać reguły kopiujące wymagane .dll do folderu bin.
 # Na start zwykle nie jest to konieczne, bo glfw z vcpkg linkuje statycznie
 # (w zależności od tripletu/ustawień).
+if(WIN32 AND ENABLE_VCPKG_DEPS)
+    # Copy all runtime DLLs from vcpkg installed bin folder to the target's output dir
+    if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_VCPKG_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+        if(EXISTS "${_VCPKG_BIN_DIR}")
+            add_custom_command(TARGET RogueLikeGame POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_VCPKG_BIN_DIR}" "$<TARGET_FILE_DIR:RogueLikeGame>"
+                COMMENT "Copying vcpkg runtime DLLs to output directory")
+        endif()
+    endif()
+endif()

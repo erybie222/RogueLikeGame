@@ -82,12 +82,56 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       }
+    },
+    {
+      "name": "vs2022-debug",
+      "displayName": "VS 2022 Debug (x64)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "vs2022-release",
+      "displayName": "VS 2022 Release (x64)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-release",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
     }
   ],
   "buildPresets": [
     { "name": "win-debug-build", "configurePreset": "win-debug" },
     { "name": "win-release-build", "configurePreset": "win-release" },
     { "name": "macos-debug-build", "configurePreset": "macos-debug" },
-    { "name": "macos-release-build", "configurePreset": "macos-release" }
+    { "name": "macos-release-build", "configurePreset": "macos-release" },
+    { "name": "vs2022-debug-build", "configurePreset": "vs2022-debug", "configuration": "Debug" },
+    { "name": "vs2022-release-build", "configurePreset": "vs2022-release", "configuration": "Release" }
   ]
 }

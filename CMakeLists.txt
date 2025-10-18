@@ -25,6 +25,12 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 add_executable(RogueLikeGame
         src/main.cpp
         src/app/VulkanImGuiApp.cpp
+        src/app/Window.cpp
+        src/app/Instance.cpp
+        src/app/Device.cpp
+        src/app/Swapchain.cpp
+        src/app/SyncAndDescriptors.cpp
+        src/app/ImGuiInit.cpp
 )
 
 # Jeśli masz własne nagłówki w ./include

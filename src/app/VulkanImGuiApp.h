@@ -23,7 +23,7 @@ private:
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily;
-        bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
+        [[nodiscard]] bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
     };
 
     struct SwapChainSupportDetails {
@@ -82,7 +82,7 @@ private:
     void cleanup();
 
     // Vulkan helpers
-    void createInstance(bool enableValidation);
+    void createInstance();
     void setupDebugMessenger();
     void destroyDebugMessenger();
     void pickPhysicalDevice();
@@ -96,6 +96,7 @@ private:
     void cleanupSwapchain();
     void recreateSwapchain();
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
+    void reinitImGuiRenderer();
 
     // Utility
     static std::vector<const char*> getRequiredExtensions(bool enableValidation);
@@ -106,4 +107,5 @@ private:
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
     static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& modes);
     static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& caps, GLFWwindow* window);
+    static bool wantValidationLayers();
 };

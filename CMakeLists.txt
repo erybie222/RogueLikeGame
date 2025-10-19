@@ -11,6 +11,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Wyjścia binarek do build/<cfg>/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# ===== Opcje jakości =====
+option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+
 # ===== Opcjonalne zależności z vcpkg =====
 # Automatycznie włącz, jeśli używany jest toolchain vcpkg; w przeciwnym razie wyłącz.
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -24,6 +27,13 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
         src/main.cpp
+        src/app/VulkanImGuiApp.cpp
+        src/app/Window.cpp
+        src/app/Instance.cpp
+        src/app/Device.cpp
+        src/app/Swapchain.cpp
+        src/app/SyncAndDescriptors.cpp
+        src/app/ImGuiInit.cpp
 )
 
 # Jeśli masz własne nagłówki w ./include
@@ -57,18 +67,43 @@ endif()
 # ===== Warnings / kompilator =====
 if(MSVC)
     target_compile_options(RogueLikeGame PRIVATE /W4 /permissive- /Zc:preprocessor)
+    if(WARNINGS_AS_ERRORS)
+        target_compile_options(RogueLikeGame PRIVATE /WX)
+    endif()
 else()
     target_compile_options(RogueLikeGame PRIVATE -Wall -Wextra -Wpedantic)
+    if(WARNINGS_AS_ERRORS)
+        target_compile_options(RogueLikeGame PRIVATE -Werror)
+    endif()
 endif()
 
-# ===== Definitions przydatne dla ImGui backendów (opcjonalnie) =====
-# Jeżeli w kodzie korzystasz z backendów ImGui_ImplGlfw/ImGui_ImplVulkan,
-# te define'y bywają pomocne; włącz/wyłącz w zależności od potrzeb.
-target_compile_definitions(RogueLikeGame PRIVATE
-        IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-)
+# ===== Platformowe definicje =====
+if(WIN32)
+    target_compile_definitions(RogueLikeGame PRIVATE VK_USE_PLATFORM_WIN32_KHR NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
+# ===== Testy (smoke test) =====
+include(CTest)
+if(BUILD_TESTING)
+    enable_testing()
+    # Uruchamia executable z parametrem --smoke
+    add_test(NAME smoke
+        COMMAND $<TARGET_FILE:RogueLikeGame> --smoke
+        WORKING_DIRECTORY $<TARGET_FILE_DIR:RogueLikeGame>)
+endif()
 
 # ===== Windows: kopiowanie dll (opcjonalnie) =====
 # Jeśli potrzeba, możesz dodać reguły kopiujące wymagane .dll do folderu bin.
 # Na start zwykle nie jest to konieczne, bo glfw z vcpkg linkuje statycznie
 # (w zależności od tripletu/ustawień).
+if(WIN32 AND ENABLE_VCPKG_DEPS)
+    # Copy all runtime DLLs from vcpkg installed bin folder to the target's output dir
+    if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_VCPKG_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+        if(EXISTS "${_VCPKG_BIN_DIR}")
+            add_custom_command(TARGET RogueLikeGame POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "${_VCPKG_BIN_DIR}" "$<TARGET_FILE_DIR:RogueLikeGame>"
+                COMMENT "Copying vcpkg runtime DLLs to output directory")
+        endif()
+    endif()
+endif()

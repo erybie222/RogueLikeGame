@@ -2,42 +2,6 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "win-debug",
-      "displayName": "Windows Debug (Ninja)",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/win-debug",
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_FEATURE_FLAGS": "manifests",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "win-release",
-      "displayName": "Windows Release (Ninja)",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/win-release",
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_FEATURE_FLAGS": "manifests",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
       "name": "macos-debug",
       "displayName": "macOS Debug (Ninja, arm64)",
       "generator": "Ninja",
@@ -49,7 +13,9 @@
         "VCPKG_FEATURE_FLAGS": "manifests",
         "VCPKG_TARGET_TRIPLET": "arm64-osx",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja",
+        "BUILD_TESTING": "ON",
+        "WARNINGS_AS_ERRORS": "ON"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
@@ -72,7 +38,8 @@
         "VCPKG_FEATURE_FLAGS": "manifests",
         "VCPKG_TARGET_TRIPLET": "arm64-osx",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja",
+        "BUILD_TESTING": "ON"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
@@ -82,12 +49,63 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       }
+    },
+    {
+      "name": "vs2022-debug",
+      "displayName": "VS 2022 Debug (x64)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "BUILD_TESTING": "ON",
+        "WARNINGS_AS_ERRORS": "ON"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "vs2022-release",
+      "displayName": "VS 2022 Release (x64)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-release",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_FEATURE_FLAGS": "manifests",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "win-debug-build", "configurePreset": "win-debug" },
-    { "name": "win-release-build", "configurePreset": "win-release" },
     { "name": "macos-debug-build", "configurePreset": "macos-debug" },
-    { "name": "macos-release-build", "configurePreset": "macos-release" }
+    { "name": "macos-release-build", "configurePreset": "macos-release" },
+    { "name": "vs2022-debug-build", "configurePreset": "vs2022-debug", "configuration": "Debug" },
+    { "name": "vs2022-release-build", "configurePreset": "vs2022-release", "configuration": "Release" }
+  ],
+  "testPresets": [
+    { "name": "macos-debug-test", "configurePreset": "macos-debug" },
+    { "name": "macos-release-test", "configurePreset": "macos-release" },
+    { "name": "vs2022-debug-test", "configurePreset": "vs2022-debug", "configuration": "Debug" },
+    { "name": "vs2022-release-test", "configurePreset": "vs2022-release", "configuration": "Release" }
   ]
 }

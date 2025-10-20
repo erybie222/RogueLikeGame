@@ -48,9 +48,9 @@ Instalacja narzędzi (przykładowo):
 Build i uruchomienie z vcpkg (PowerShell):
 
 ```powershell
-cmake --preset win-debug
-cmake --build --preset win-debug-build
-./build/win-debug/bin/RogueLikeGame.exe
+cmake --preset vs2022-debug
+cmake --build --preset vs2022-debug-build
+.\build\vs2022-debug\bin\Debug\RogueLikeGame.exe
 ```
 
 Dla wersji Release użyj presetów `macos-release` / `win-release` i odpowiednich ścieżek do binarek.
@@ -60,8 +60,8 @@ Dla wersji Release użyj presetów `macos-release` / `win-release` i odpowiednic
 Plik `CMakePresets.json` definiuje presety:
 - `macos-debug` – Ninja, arch: arm64, vcpkg włączony, `CMAKE_MAKE_PROGRAM` wskazuje na `/opt/homebrew/bin/ninja`.
 - `macos-release` – analogicznie jak wyżej, tylko `Release`.
-- `win-debug` – Ninja, vcpkg włączony, triplet `x64-windows`.
-- `win-release` – analogicznie jak wyżej, tylko `Release`.
+- `vs2022-debug` – Visual Studio 17 2022, architektura x64, triplet `x64-windows`.
+- `vs2022-release` – analogicznie jak wyżej, tylko `Release`.
 
 
 ## Vulkan na macOS/Windows
@@ -112,7 +112,3 @@ cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\V
 
  (krótka kontrola – powinno pokazać HostX64 przed HostX86):
  ($env:PATH -split ';' | Select-String 'MSVC\\.*\\bin\\Host')
-
-cmake --preset win-debug          # konfiguracja (Debug)
-cmake --build --preset win-debug-build   # kompilacja
-./build/win-debug/bin/RogueLikeGame.exe

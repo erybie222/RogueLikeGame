@@ -84,6 +84,9 @@ void VulkanImGuiApp::mainLoop()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // --- Rysowanie świata/tła (poza oknami) ---
+        drawWorld();
+
         if (show_window) {
             ImGui::Begin("Hello, ImGui + Vulkan");
             ImGui::Text("To jest podstawowe okno ImGui.");
@@ -122,6 +125,12 @@ void VulkanImGuiApp::mainLoop()
 
 void VulkanImGuiApp::cleanup()
 {
+    // Najpierw sprite'y (mają ImGui descriptor sets)
+    clearSprites();
+
+    // (opcjonalnie) stara pojedyncza tekstura
+    destroyCharacterTexture();
+
     // ImGui
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -149,4 +158,20 @@ void VulkanImGuiApp::cleanup()
 
     if (window_) { glfwDestroyWindow(window_); window_ = nullptr; }
     glfwTerminate();
+}
+
+// --- Rysowanie tła i innych obiektów (poza oknami ImGui) ---
+void VulkanImGuiApp::drawWorld()
+{
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    for (const auto& s : sprites_) {
+        if (!s.imTex || !s.visible) continue;
+        ImVec2 pos = s.pos;
+        ImVec2 size = s.size.x > 0.0f && s.size.y > 0.0f ? s.size : ImVec2((float)s.width, (float)s.height);
+        bg->AddImage(s.imTex, pos, ImVec2(pos.x + size.x, pos.y + size.y),
+                     ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    }
+
+    // (opcjonalnie) stara pełnoekranowa tekstura:
+    // if (characterImTex_) { ... }
 }

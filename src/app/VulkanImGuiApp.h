@@ -1,6 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include <vulkan/vulkan.h>
+#include <imgui.h>
+#include <string>
 
 // Forward declaration to avoid including GLFW in public header
 struct GLFWwindow;
@@ -11,9 +13,7 @@ struct GLFWwindow;
 
 class VulkanImGuiApp {
 public:
-    // Runs the app: init -> loop -> cleanup. Returns process exit code.
     int run();
-    // Smoke test: init -> immediate cleanup (no main loop). Returns process exit code.
     int runSmokeTest();
 
 private:
@@ -40,6 +40,20 @@ private:
         VkImageView view{};
     };
 
+    // Prosty sprite
+    struct Sprite {
+        VkImage        image = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        VkImageView    view  = VK_NULL_HANDLE;
+        VkSampler      sampler = VK_NULL_HANDLE;
+        ImTextureID    imTex = (ImTextureID)0;
+        uint32_t       width = 0;
+        uint32_t       height = 0;
+        ImVec2         pos{0.0f, 0.0f};
+        ImVec2         size{0.0f, 0.0f}; // 0 => użyj oryginalnych wymiarów
+        bool           visible = true;
+    };
+
     // State
     GLFWwindow* window_ = nullptr;
 
@@ -51,7 +65,6 @@ private:
     VkQueue graphicsQueue_{};
     VkQueue presentQueue_{};
 
-    // Debug messenger (validation layers)
     VkDebugUtilsMessengerEXT debugMessenger_{};
 
     VkSwapchainKHR swapchain_{};
@@ -63,12 +76,22 @@ private:
     std::vector<VkFramebuffer> framebuffers_;
 
     VkCommandPool commandPool_{};
-    std::vector<VkCommandBuffer> commandBuffers_;
+    std::vector<VkCommandBuffer> commandBuffers_{};
 
     VkDescriptorPool imguiDescriptorPool_{};
 
     std::vector<FrameSync> frames_;
     uint32_t currentFrame_ = 0;
+
+    // Kolekcja sprite'ów
+    std::vector<Sprite> sprites_;
+
+    // Pojedyncza tekstura (zostawiona, jeśli używasz)
+    VkImage        characterImage_ = VK_NULL_HANDLE;
+    VkDeviceMemory characterImageMemory_ = VK_NULL_HANDLE;
+    VkImageView    characterImageView_ = VK_NULL_HANDLE;
+    VkSampler      characterSampler_ = VK_NULL_HANDLE;
+    ImTextureID    characterImTex_ = (ImTextureID)0;
 
 private:
     // High-level steps
@@ -94,6 +117,31 @@ private:
     void recreateSwapchain();
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
     void reinitImGuiRenderer();
+
+    // Rysowanie świata
+    void drawWorld();
+
+    // API sprite'ów
+    int  addSpriteFromFile(const std::string& path);
+    void setSpriteRect(int id, float x, float y, float w, float h);
+    void setSpriteVisible(int id, bool visible);
+    void removeSprite(int id);
+    void clearSprites();
+    void destroySprite(Sprite& s); // prywatne niszczenie jednego sprite'a
+
+    // --- Tekstura postaci (stare API) ---
+    void createCharacterTextureFromFile(const std::string& path);
+    void destroyCharacterTexture();
+
+    // --- Helpery Vulkan używane przy ładowaniu tekstur ---
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    VkCommandBuffer beginSingleTimeCommands();
+    void endSingleTimeCommands(VkCommandBuffer cmd);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    VkImageView createImageView(VkImage image, VkFormat format);
 
     // Utility
     static std::vector<const char*> getRequiredExtensions(bool enableValidation);

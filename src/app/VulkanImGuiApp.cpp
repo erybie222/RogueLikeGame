@@ -1,12 +1,14 @@
 #include "VulkanImGuiApp.h"
+#include "game.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <vk_utils.h>
-
 #include <iostream>
 #include <stdexcept>
+
+Entity* player_ = nullptr;
 
 int VulkanImGuiApp::run()
 {
@@ -14,6 +16,10 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
+        // --- Wczytaj ikonę jako teksturę i zarejestruj w ImGui ---
+        int playerId = addSpriteFromFile("assets/characters/hero.png");
+        player_ = new Entity(playerId, 64, 64, 256.0f, 256.0f); //  width, height, x, y
+
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -164,13 +170,17 @@ void VulkanImGuiApp::cleanup()
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    for (const auto& s : sprites_) {
-        if (!s.imTex || !s.visible) continue;
-        ImVec2 pos = s.pos;
-        ImVec2 size = s.size.x > 0.0f && s.size.y > 0.0f ? s.size : ImVec2((float)s.width, (float)s.height);
-        bg->AddImage(s.imTex, pos, ImVec2(pos.x + size.x, pos.y + size.y),
-                     ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
-    }
+
+    ImVec2 pos = player_->getPosition();
+    uint32_t width = player_->getWidth();
+    uint32_t height = player_->getHeight();
+    int spriteId = player_->getSpriteId();
+
+    Sprite& sprite = sprites_[spriteId];
+
+    bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + width, pos.y + height),
+                    ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    
 
     // (opcjonalnie) stara pełnoekranowa tekstura:
     // if (characterImTex_) { ... }

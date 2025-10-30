@@ -46,9 +46,6 @@ void VulkanImGuiApp::initImGui()
         throw std::runtime_error("ImGui_ImplVulkan_CreateFontsTexture failed");
     }
 
-    // --- Wczytaj ikonê jako teksturê i zarejestruj w ImGui ---
-    int heroId = addSpriteFromFile("assets/characters/hero.png");
-    setSpriteRect(heroId, 32.0f, 162.0f, 256.0f, 256.0f); // x, y, width, height
 }
 
 void VulkanImGuiApp::reinitImGuiRenderer()

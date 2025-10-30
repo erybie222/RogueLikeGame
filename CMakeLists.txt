@@ -35,6 +35,7 @@ add_executable(RogueLikeGame
         src/app/SyncAndDescriptors.cpp
         src/app/ImGuiInit.cpp
         src/app/Texture.cpp
+        src/app/game.cpp
 )
 
 # Jeśli masz własne nagłówki w ./include

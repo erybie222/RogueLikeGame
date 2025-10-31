@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <unordered_map>
 
 using SpriteId = int;
 
@@ -31,6 +32,7 @@ public:
     ~Assets();
 
     SpriteId addSpriteFromFile(const std::string& path);
+    SpriteId getOrLoad(const std::string& path);
     const SpriteGPU& sprite(SpriteId id) const { return sprites_[id]; }
 
     void removeSprite(SpriteId id);   // zostawia „dziurê” – stabilne ID
@@ -39,6 +41,9 @@ public:
 private:
     Ctx ctx_;
     std::vector<SpriteGPU> sprites_;
+
+    std::unordered_map<std::string, SpriteId> byPath_;
+    std::vector < std::string> paths_;
 
     // Pomocnicze (przeniesione z Texture.cpp)
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;

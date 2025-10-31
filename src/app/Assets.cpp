@@ -215,7 +215,23 @@ SpriteId Assets::addSpriteFromFile(const std::string& path) {
     vkFreeMemory(ctx_.device, stagingMemory, nullptr);
 
     sprites_.push_back(s);
-    return static_cast<int>(sprites_.size() - 1);
+    SpriteId id = static_cast<int>(sprites_.size() - 1);
+
+    // <<< DODAJ: zapamiêtaj œcie¿kê i zaktualizuj cache (¿eby getOrLoad widzia³ ten asset)
+    paths_.push_back(path);
+    byPath_[path] = id;
+
+    return id;
+}
+
+SpriteId Assets::getOrLoad(const std::string& path)
+{
+    if (auto it = byPath_.find(path); it != byPath_.end())
+        return it->second;
+    SpriteId id = addSpriteFromFile(path);
+    byPath_[path] = id;
+    // paths_ uzupe³nia addSpriteFromFile (patrz ni¿ej)
+    return id;
 }
 
 void Assets::destroySprite(const Ctx& ctx, SpriteGPU& s) {
@@ -229,10 +245,25 @@ void Assets::destroySprite(const Ctx& ctx, SpriteGPU& s) {
 
 void Assets::removeSprite(SpriteId id) {
     if (id < 0 || (size_t)id >= sprites_.size()) return;
-    destroySprite(ctx_, sprites_[id]);
+
+    // Usuñ z cache jeœli mamy œcie¿kê
+    if (id < static_cast<SpriteId>(paths_.size())) {
+        const std::string& p = paths_[id];
+        if (!p.empty()) {
+            auto it = byPath_.find(p);
+            if (it != byPath_.end() && it->second == id)
+                byPath_.erase(it);
+        }
+        paths_[id].clear();
+    }
+
+    destroySprite(ctx_, sprites_[id]); // stabilne ID, zostaje "dziura"
 }
+
 
 void Assets::clear() {
     for (auto& s : sprites_) destroySprite(ctx_, s);
     sprites_.clear();
+    byPath_.clear();     // <<< DODAJ
+    paths_.clear();      // <<< DODAJ
 }

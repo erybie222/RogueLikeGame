@@ -34,8 +34,10 @@ add_executable(RogueLikeGame
         src/app/Swapchain.cpp
         src/app/SyncAndDescriptors.cpp
         src/app/ImGuiInit.cpp
-        src/app/Texture.cpp
         src/app/game.cpp
+        src/app/assets.cpp
+        src/app/GameSetup.cpp
+
 )
 
 # Jeśli masz własne nagłówki w ./include

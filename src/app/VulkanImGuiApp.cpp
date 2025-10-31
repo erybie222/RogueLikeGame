@@ -1,5 +1,6 @@
 #include "VulkanImGuiApp.h"
-#include "game.h"
+#include "Game.h"
+#include "GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -8,7 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 
-Entity* player_ = nullptr;
+std::vector<Entity*> entities;
 
 int VulkanImGuiApp::run()
 {
@@ -16,10 +17,8 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
-        // --- Wczytaj ikonę jako teksturę i zarejestruj w ImGui ---
-        int playerId = addSpriteFromFile("assets/characters/hero.png");
-        player_ = new Entity(playerId, 64, 64, 256.0f, 256.0f); //  width, height, x, y
-
+        // --- Wczytaj ikonę jako teksturę i zarejestruj w ImGui ---        
+        setupGameEntities(entities, assets_);
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -65,6 +64,8 @@ void VulkanImGuiApp::initVulkan()
     createCommandPoolAndBuffers();
     createSyncObjects();
     createDescriptorPoolForImGui();
+    Assets::Ctx actx{ physicalDevice_, device_, graphicsQueue_, commandPool_ };
+    assets_ = new Assets(actx);
 }
 
 void VulkanImGuiApp::mainLoop()
@@ -131,11 +132,11 @@ void VulkanImGuiApp::mainLoop()
 
 void VulkanImGuiApp::cleanup()
 {
-    // Najpierw sprite'y (mają ImGui descriptor sets)
-    clearSprites();
+    if (assets_) { assets_->clear(); delete assets_; assets_ = nullptr; }
 
-    // (opcjonalnie) stara pojedyncza tekstura
-    destroyCharacterTexture();
+    for (auto* e : entities)
+        delete e;
+    entities.clear();
 
     // ImGui
     ImGui_ImplVulkan_Shutdown();
@@ -170,18 +171,17 @@ void VulkanImGuiApp::cleanup()
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-
-    ImVec2 pos = player_->getPosition();
-    uint32_t width = player_->getWidth();
-    uint32_t height = player_->getHeight();
-    int spriteId = player_->getSpriteId();
-
-    Sprite& sprite = sprites_[spriteId];
-
-    bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + width, pos.y + height),
-                    ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
     
+    for (Entity* e : entities) {
+        if (!e) continue;
+        ImVec2 pos = e->getPosition();
+        uint32_t width = e->getWidth();
+        uint32_t height = e->getHeight();
 
-    // (opcjonalnie) stara pełnoekranowa tekstura:
-    // if (characterImTex_) { ... }
+        auto& sprite = assets_->sprite(e->getSpriteId());
+
+        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + width, pos.y + height),
+            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    }
+
 }

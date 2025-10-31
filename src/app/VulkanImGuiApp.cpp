@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 
+//tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
 std::vector<Entity*> entities;
 
 int VulkanImGuiApp::run()
@@ -64,6 +65,7 @@ void VulkanImGuiApp::initVulkan()
     createCommandPoolAndBuffers();
     createSyncObjects();
     createDescriptorPoolForImGui();
+    //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
     Assets::Ctx actx{ physicalDevice_, device_, graphicsQueue_, commandPool_ };
     assets_ = new Assets(actx);
 }
@@ -171,17 +173,17 @@ void VulkanImGuiApp::cleanup()
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    
+
+    //wyswietlanie wszystkich spritow
     for (Entity* e : entities) {
         if (!e) continue;
+
         ImVec2 pos = e->getPosition();
         uint32_t width = e->getWidth();
         uint32_t height = e->getHeight();
-
         auto& sprite = assets_->sprite(e->getSpriteId());
 
         bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + width, pos.y + height),
             ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
     }
-
 }

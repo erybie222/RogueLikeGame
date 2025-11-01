@@ -1,6 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include <vulkan/vulkan.h>
+#include <imgui.h>
+#include <string>
+#include "Assets.h"
 
 // Forward declaration to avoid including GLFW in public header
 struct GLFWwindow;
@@ -11,9 +14,7 @@ struct GLFWwindow;
 
 class VulkanImGuiApp {
 public:
-    // Runs the app: init -> loop -> cleanup. Returns process exit code.
     int run();
-    // Smoke test: init -> immediate cleanup (no main loop). Returns process exit code.
     int runSmokeTest();
 
 private:
@@ -51,7 +52,6 @@ private:
     VkQueue graphicsQueue_{};
     VkQueue presentQueue_{};
 
-    // Debug messenger (validation layers)
     VkDebugUtilsMessengerEXT debugMessenger_{};
 
     VkSwapchainKHR swapchain_{};
@@ -63,12 +63,14 @@ private:
     std::vector<VkFramebuffer> framebuffers_;
 
     VkCommandPool commandPool_{};
-    std::vector<VkCommandBuffer> commandBuffers_;
+    std::vector<VkCommandBuffer> commandBuffers_{};
 
     VkDescriptorPool imguiDescriptorPool_{};
 
     std::vector<FrameSync> frames_;
     uint32_t currentFrame_ = 0;
+
+    Assets* assets_ = nullptr; // lub jako wartość: Assets assets_{...}
 
 private:
     // High-level steps
@@ -94,6 +96,19 @@ private:
     void recreateSwapchain();
     void recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
     void reinitImGuiRenderer();
+
+    // Rysowanie świata
+    void drawWorld();
+
+    // --- Helpery Vulkan używane przy ładowaniu tekstur ---
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    VkCommandBuffer beginSingleTimeCommands();
+    void endSingleTimeCommands(VkCommandBuffer cmd);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    VkImageView createImageView(VkImage image, VkFormat format);
 
     // Utility
     static std::vector<const char*> getRequiredExtensions(bool enableValidation);

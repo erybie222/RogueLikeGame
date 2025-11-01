@@ -6,6 +6,7 @@
     "glm",
     "vulkan-headers",
     "vulkan-loader",
+    "stb",
     {
       "name": "imgui",
       "default-features": true,

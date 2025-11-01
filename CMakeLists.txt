@@ -34,6 +34,10 @@ add_executable(RogueLikeGame
         src/app/Swapchain.cpp
         src/app/SyncAndDescriptors.cpp
         src/app/ImGuiInit.cpp
+        src/app/game.cpp
+        src/app/assets.cpp
+        src/app/GameSetup.cpp
+
 )
 
 # Jeśli masz własne nagłówki w ./include
@@ -41,25 +45,31 @@ target_include_directories(RogueLikeGame PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # ===== Dependencies z vcpkg (opcjonalne) =====
 if(ENABLE_VCPKG_DEPS)
-    # GLFW
     find_package(glfw3 CONFIG REQUIRED)
-
-    # GLM
     find_package(glm CONFIG REQUIRED)
-
-    # Vulkan (loader + headers). W systemie musisz mieć runtime/sterownik Vulkan.
     find_package(Vulkan REQUIRED)
-
-    # ImGui z backendami (w vcpkg włącz: imgui[glfw-binding,vulkan-binding])
     find_package(imgui CONFIG REQUIRED)
 
-    # Linkowanie
+    # ZAMIENNIK za find_package(stb CONFIG REQUIRED):
+    # Szukamy katalogu zawierającego stb_image.h (często jest to <vcpkg>/installed/<triplet>/include/stb)
+    find_path(STB_INCLUDE_DIR
+        NAMES stb_image.h
+        PATH_SUFFIXES stb
+    )
+    if(NOT STB_INCLUDE_DIR)
+        message(FATAL_ERROR "Nie znaleziono stb_image.h. Zainstaluj port 'stb' (vcpkg.json) i zrób reconfigure.")
+    endif()
+
     target_link_libraries(RogueLikeGame PRIVATE
             imgui::imgui
-            glfw              # z pakietu glfw3
+            glfw
             Vulkan::Vulkan
             glm::glm
+            # UWAGA: nie linkujemy 'stb::stb' – stb to czyste nagłówki
     )
+
+    # Dodaj include dla stb
+    target_include_directories(RogueLikeGame PRIVATE ${STB_INCLUDE_DIR})
 else()
     message(STATUS "ENABLE_VCPKG_DEPS=OFF -> budujemy bez zewnętrznych bibliotek (Hello World)")
 endif()

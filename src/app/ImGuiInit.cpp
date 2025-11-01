@@ -45,6 +45,7 @@ void VulkanImGuiApp::initImGui()
     if (!ImGui_ImplVulkan_CreateFontsTexture()) {
         throw std::runtime_error("ImGui_ImplVulkan_CreateFontsTexture failed");
     }
+
 }
 
 void VulkanImGuiApp::reinitImGuiRenderer()

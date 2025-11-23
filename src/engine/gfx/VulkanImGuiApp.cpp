@@ -140,34 +140,41 @@ void VulkanImGuiApp::mainLoop()
             break; // wyjdz od razu
         }
 
-        VulkanImGuiApp::FrameSync& fs = frames_[currentFrame_];
+     VulkanImGuiApp::FrameSync& fs = frames_[currentFrame_];
         vkWaitForFences(device_, 1, &fs.inFlight, VK_TRUE, UINT64_MAX);
         vkResetFences(device_, 1, &fs.inFlight);
 
         uint32_t imageIndex = 0;
-        VkResult acq = vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, fs.imageAvailable, VK_NULL_HANDLE, &imageIndex);
+  VkResult acq = vkAcquireNextImageKHR(device_, swapchain_, UINT64_MAX, fs.imageAvailable, VK_NULL_HANDLE, &imageIndex);
         if (acq == VK_ERROR_OUT_OF_DATE_KHR) { recreateSwapchain(); continue; }
         else if (acq != VK_SUCCESS && acq != VK_SUBOPTIMAL_KHR) {
-            std::cerr << "Failed to acquire swapchain image: " << acq << std::endl; break;
-        }
+     std::cerr << "Failed to acquire swapchain image: " << acq << std::endl; break;
+    }
 
-        ImGui_ImplVulkan_NewFrame();
+      ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        float dt = ImGui::GetIO().DeltaTime;
+   float dt = ImGui::GetIO().DeltaTime;
 
-        // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
-        if (auto* player = world_ ? world_->getPlayer() : nullptr) {
-            float dx = 0.0f, dy = 0.0f;
+        // Update screen bounds for world
+      if (world_) {
+   auto& io = ImGui::GetIO();
+  world_->setScreenBounds(io.DisplaySize.x, io.DisplaySize.y);
+        }
+
+      // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
+      if (auto* player = world_ ? world_->getPlayer() : nullptr) {
+        float dx = 0.0f, dy = 0.0f;
             if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) dy -= 1.0f;
             if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) dy += 1.0f;
             if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
-            player->applyInput(ImVec2(dx,dy));
-        }
+      if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
+         player->applyInput(ImVec2(dx,dy));
+   }
 
 		if (world_) world_->update(dt);
+
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();

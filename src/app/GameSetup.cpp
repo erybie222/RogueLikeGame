@@ -6,24 +6,24 @@
 
 void setupGame(World& world)
 {
-    Map map;
-    if (!map.loadFromFile("assets/maps/map0.txt")) {
-        throw std::runtime_error("Could not load map file!");
-    }
+    world.addMap("assets/maps/map0.txt");
+    world.addMap("assets/maps/map1.txt");
+    world.addMap("assets/maps/map2.txt");
+    world.addMap("assets/maps/map3.txt");
+
+
+    world.setCurrentMapIndex(0);
 
     world.buildFromMap(
-        map,
         "assets/design/wall.png",
         "assets/design/floor.png",
+        "assets/design/door.png",
         64, 64
     );
 
-    auto& player = world.spawnPlayer(
+    world.spawnPlayer(
         "assets/characters/hero.png",
         64, 64,
         100.0f, 100.0f, 100
     );
-     auto& npc = world.spawnNpc("assets/characters/angel.png",
-         64, 64 ,
-         180.0f, 180.0f, 100);
 }

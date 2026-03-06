@@ -74,7 +74,7 @@ add_executable(RogueLikeGame
         src/game/factory/ItemFactory.cpp
         src/game/factory/ItemFactory.h
         src/game/item/usable/Key.h
-
+        src/app/AiServerApp.cpp
 )
 
 # Katalogi z nagłówkami
@@ -90,6 +90,7 @@ if(ENABLE_VCPKG_DEPS)
     find_package(glm CONFIG REQUIRED)
     find_package(Vulkan REQUIRED)
     find_package(imgui CONFIG REQUIRED)
+    find_package(cppzmq CONFIG REQUIRED)
 
     find_path(TMXLITE_INCLUDE_DIR NAMES tmxlite/Map.hpp)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -119,6 +120,7 @@ if(ENABLE_VCPKG_DEPS)
             Vulkan::Vulkan
             glm::glm
             ${TMXLITE_LINK_LIBRARIES}
+            cppzmq
     )
 
     # Dodaj include dla stb, tmxlite i Vulkan/vcpkg (jawnie, dla VS)

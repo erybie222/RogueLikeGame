@@ -10,14 +10,18 @@ void VulkanImGuiApp::initWindow()
     if (!glfwInit())
         throw std::runtime_error("GLFW init failed");
 
-    // (opcjonalnie, ale polecam mie�)
+    // (opcjonalnie, ale polecam mieć)
     glfwSetErrorCallback([](int err, const char* desc)
                          { std::cerr << "GLFW Error " << err << ": " << desc << std::endl; });
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_TRUE);
+    // Create a borderless window sized and positioned to cover the primary monitor
+    // (windowed fullscreen / borderless window). This allows alt-tabbing and using
+    // other monitors without the exclusive-fullscreen behavior.
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     if (!monitor)
@@ -27,14 +31,15 @@ void VulkanImGuiApp::initWindow()
     if (!mode)
         throw std::runtime_error("No video mode");
 
-    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-    window_ = glfwCreateWindow(mode->width, mode->height, "RogueLikeGame", monitor, nullptr);
+    // Create a windowed (not exclusive fullscreen) window at the monitor resolution
+    window_ = glfwCreateWindow(mode->width, mode->height, "RogueLikeGame", nullptr, nullptr);
     if (!window_)
-        throw std::runtime_error("Failed to create fullscreen window");
+        throw std::runtime_error("Failed to create window");
+
+    // Position the window at the top-left of the primary monitor so it covers it
+    int monX = 0, monY = 0;
+    glfwGetMonitorPos(monitor, &monX, &monY);
+    glfwSetWindowPos(window_, monX, monY);
 
     glfwSetWindowUserPointer(window_, this);
 }

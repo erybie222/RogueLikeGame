@@ -257,9 +257,10 @@ void VulkanImGuiApp::mainLoop()
         {
             float dx = 0.0f, dy = 0.0f;
 
-            if (aiMode_ && aiServer_)
+            int dir = aiServer_->consumeDirection();
+
+            if (aiMode_ && aiServer_ && dir<=3)
             {
-                int dir = aiServer_->consumeDirection();
                 switch (dir)
                 {
                     case 0: dy = -1.0f; break; // up
@@ -305,7 +306,25 @@ void VulkanImGuiApp::mainLoop()
             }
 
             // player attack
-            if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
+            if (aiMode_ && aiServer_ && dir==4)
+            {
+                if (player->isMeleeMode())
+                {
+                    if (player->canMelee())
+                    {
+                        if (!player->getAnimationController())
+                        {
+                            world_->performMeleeAttack(*player);
+                        }
+                        else
+                        {
+                            player->setIsPerformingMeleeAttack(true);
+                        }
+                        player->startMeleeCooldown();
+                    }
+                }
+            }
+            else if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
                 if (player->isMeleeMode())
                 {
@@ -398,7 +417,6 @@ void VulkanImGuiApp::mainLoop()
 
                 float reward = 0.0f;
 
-                reward -= 0.25f;
 
                 int currentHp = player->getHp();
                 reward += (currentHp - lastPlayerHp_) * 0.5f;
@@ -409,9 +427,19 @@ void VulkanImGuiApp::mainLoop()
                     if (tileX != lastPlayerTileX_ || tileY != lastPlayerTileY_)
                     {
                         reward += 5.0f;
-                        lastPlayerTileX_ = tileX;
-                        lastPlayerTileY_ = tileY;
+                        
                     }
+                    else
+                    {
+                        reward -= 2.5f;
+                    }
+                    lastPlayerTileX_ = tileX;
+                    lastPlayerTileY_ = tileY;
+                }
+                else
+                {
+                    lastPlayerTileX_ = tileX;
+                    lastPlayerTileY_ = tileY;
                 }
                  
                 int currentMap = world_->getCurrentMapIndex();

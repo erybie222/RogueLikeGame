@@ -68,7 +68,7 @@ void AiServerApp::serverLoop()
                 break;
             }
 
-            if (command.size() == 1 && command[0] >= '0' && command[0] <= '3')
+            if (command.size() == 1 && command[0] >= '0' && command[0] <= '4')
             {
                 lastDirection_.store(command[0] - '0');
                 std::lock_guard<std::mutex> lock(responseMutex_);

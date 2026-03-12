@@ -24,7 +24,7 @@ void setupGame(World& world)
 
     world.buildFromTmxMap();
 
-    auto& player = world.spawnPlayer({210.0f, 210.0f + World::UI_TOP_BAR_HEIGHT});
+    auto& player = world.spawnPlayer({250.0f, 250.0f + World::UI_TOP_BAR_HEIGHT});
     //world.givePlayerItem(ItemId::Key);
    
     /*auto& npc = world.spawnNpc(NpcType::Orc, {12 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});

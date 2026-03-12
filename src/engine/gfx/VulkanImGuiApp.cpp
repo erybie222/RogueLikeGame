@@ -394,7 +394,44 @@ void VulkanImGuiApp::mainLoop()
                 ImVec2 pPos = player->getPosition();
                 int tileX = static_cast<int>(pPos.x / 64.0f);
                 int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
-                aiServer_->updateResponse(player->getHp(), player->isAlive(), tileX, tileY, world_->getTileGrid());
+
+
+                float reward = 0.0f;
+
+                reward -= 0.25f;
+
+                int currentHp = player->getHp();
+                reward += (currentHp - lastPlayerHp_) * 0.5f;
+                lastPlayerHp_ = currentHp;
+
+                if (lastPlayerTileX_ != -1 && lastPlayerTileY_ != -1)
+                {
+                    if (tileX != lastPlayerTileX_ || tileY != lastPlayerTileY_)
+                    {
+                        reward += 5.0f;
+                        lastPlayerTileX_ = tileX;
+                        lastPlayerTileY_ = tileY;
+                    }
+                }
+                 
+                int currentMap = world_->getCurrentMapIndex();
+                if (currentMap != lastMapIndex_)
+                {
+                    reward += 50.0f;
+                    lastMapIndex_ = currentMap;
+                }
+
+                if (world_->isGameWon())
+                {
+                    reward += 100.0f;
+                }
+                else if (!player->isAlive())
+                {
+                    reward -= 100.0f;
+                }
+
+                
+                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward);
             }
         }
 

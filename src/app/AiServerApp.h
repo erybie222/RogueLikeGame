@@ -17,7 +17,7 @@ public:
     void stop();
 
     int consumeDirection();
-    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid);
+    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward);
 
 private:
     void serverLoop();

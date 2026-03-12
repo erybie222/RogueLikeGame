@@ -391,7 +391,10 @@ void VulkanImGuiApp::mainLoop()
             world_->update(dt);
             if (aiMode_ && aiServer_)
             {
-                aiServer_->updateResponse(player->getHp(), player->isAlive(), world_->getTileGrid());
+                ImVec2 pPos = player->getPosition();
+                int tileX = static_cast<int>(pPos.x / 64.0f);
+                int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
+                aiServer_->updateResponse(player->getHp(), player->isAlive(), tileX, tileY, world_->getTileGrid());
             }
         }
 

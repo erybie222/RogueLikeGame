@@ -14,6 +14,7 @@
       "default-features": true,
       "features": ["glfw-binding", "vulkan-binding"]
     },
-    "tmxlite"
+    "tmxlite",
+    "nlohmann-json"
   ]
 }

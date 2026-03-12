@@ -91,6 +91,7 @@ if(ENABLE_VCPKG_DEPS)
     find_package(Vulkan REQUIRED)
     find_package(imgui CONFIG REQUIRED)
     find_package(cppzmq CONFIG REQUIRED)
+    find_package(nlohmann_json CONFIG REQUIRED)
 
     find_path(TMXLITE_INCLUDE_DIR NAMES tmxlite/Map.hpp)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")

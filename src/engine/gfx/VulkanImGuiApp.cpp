@@ -52,7 +52,9 @@ int VulkanImGuiApp::run()
         setupGame(*world_);
 
         if (aiMode_ && aiServer_)
+        {
             aiServer_->start();
+        }
 
         mainLoop();
         vkDeviceWaitIdle(device_);
@@ -385,7 +387,14 @@ void VulkanImGuiApp::mainLoop()
         }
 
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
+        {
             world_->update(dt);
+            if (aiMode_ && aiServer_)
+            {
+                aiServer_->updateResponse(player->getHp(), player->isAlive());
+            }
+        }
+
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();

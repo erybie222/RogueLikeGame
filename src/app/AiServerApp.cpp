@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 #include <zmq.hpp>
+#include <nlohmann/json.hpp>
+
 
 AiServerApp::~AiServerApp()
 {
@@ -29,6 +31,12 @@ int AiServerApp::consumeDirection()
     return lastDirection_.exchange(-1);
 }
 
+void AiServerApp::updateResponse(int hp, bool alive) {
+    std::lock_guard<std::mutex> lock(responseMutex_);
+    response["hp"] = hp;
+    response["alive"] = alive;
+}
+
 void AiServerApp::serverLoop()
 {
     try
@@ -51,7 +59,7 @@ void AiServerApp::serverLoop()
 
             if (command == "quit")
             {
-                socket.send(zmq::buffer(std::string("ok")), zmq::send_flags::none);
+                socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
                 running_ = false;
                 break;
             }
@@ -59,7 +67,8 @@ void AiServerApp::serverLoop()
             if (command.size() == 1 && command[0] >= '0' && command[0] <= '3')
             {
                 lastDirection_.store(command[0] - '0');
-                socket.send(zmq::buffer(std::string("ok")), zmq::send_flags::none);
+                std::lock_guard<std::mutex> lock(responseMutex_);
+                socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
             }
             else
             {

@@ -391,7 +391,7 @@ void VulkanImGuiApp::mainLoop()
             world_->update(dt);
             if (aiMode_ && aiServer_)
             {
-                aiServer_->updateResponse(player->getHp(), player->isAlive());
+                aiServer_->updateResponse(player->getHp(), player->isAlive(), world_->getTileGrid());
             }
         }
 

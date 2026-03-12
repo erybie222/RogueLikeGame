@@ -31,10 +31,11 @@ int AiServerApp::consumeDirection()
     return lastDirection_.exchange(-1);
 }
 
-void AiServerApp::updateResponse(int hp, bool alive) {
+void AiServerApp::updateResponse(int hp, bool alive, const std::vector<std::vector<int>>& grid) {
     std::lock_guard<std::mutex> lock(responseMutex_);
     response["hp"] = hp;
     response["alive"] = alive;
+    response["grid"] = grid;
 }
 
 void AiServerApp::serverLoop()

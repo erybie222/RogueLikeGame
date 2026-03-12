@@ -108,7 +108,7 @@ public:
     }
     ImVec2 getDirToPlayer(LivingEntity* entity);
     void        reset();
-
+    std::vector<std::vector<int>> getTileGrid() const;
 
     enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
     void givePlayerItem(ItemId id);

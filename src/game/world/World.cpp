@@ -1297,3 +1297,41 @@ void World::reset() {
     doorsUnlocked_ = false;
     lockedDoorsUnlocked_ = false;
 }
+
+std::vector<std::vector<int>> World::getTileGrid() const
+{
+    auto* map = getMap(currentMapLevel, currentMapIndex);
+    if (!map) return {};
+
+    int rows = map->getRows();
+    int cols = map->getColumns();
+
+    // 0=podloga, 1=sciana, 2=drzwi otwarte, 3=drzwi zamkniete
+    std::vector<std::vector<int>> grid(rows, std::vector<int>(cols, 0));
+
+    for (const auto& up : entities_)
+    {
+        if (!up || !up->isSolid()) continue;
+        if (up->isNpc() || up->isItem()) continue;
+
+        ImVec2 pos = up->getPosition();
+        int tx = static_cast<int>(pos.x / 64.0f);
+        int ty = static_cast<int>((pos.y - UI_TOP_BAR_HEIGHT) / 64.0f);
+
+        if (tx >= 0 && tx < cols && ty >= 0 && ty < rows)
+            grid[ty][tx] = 1;
+    }
+
+    for (Entity* door : doorEntities_)
+    {
+        if (!door) continue;
+        ImVec2 pos = door->getPosition();
+        int tx = static_cast<int>(pos.x / 64.0f);
+        int ty = static_cast<int>((pos.y - UI_TOP_BAR_HEIGHT) / 64.0f);
+
+        if (tx >= 0 && tx < cols && ty >= 0 && ty < rows)
+            grid[ty][tx] = door->isSolid() ? 3 : 2;
+    }
+
+    return grid;
+}

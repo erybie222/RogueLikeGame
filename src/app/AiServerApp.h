@@ -3,6 +3,7 @@
 #include <atomic>
 #include <thread>
 #include <mutex>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 class World;
@@ -16,7 +17,7 @@ public:
     void stop();
 
     int consumeDirection();
-    void updateResponse(int hp, bool alive);
+    void updateResponse(int hp, bool alive, const std::vector<std::vector<int>>& grid);
 
 private:
     void serverLoop();

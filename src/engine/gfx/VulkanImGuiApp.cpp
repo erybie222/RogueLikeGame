@@ -22,6 +22,10 @@
 #include <vk_utils.h>
 #include "game/factory/ItemFactory.h"
 #include "utils/MathUtils.h"
+#include "app/AiServerApp.h"
+
+VulkanImGuiApp::VulkanImGuiApp() = default;
+VulkanImGuiApp::~VulkanImGuiApp() = default;
 
 int VulkanImGuiApp::run()
 {
@@ -46,13 +50,23 @@ int VulkanImGuiApp::run()
 
         world_ = std::make_unique<World>(assets_.get());
         setupGame(*world_);
+
+        if (aiMode_ && aiServer_)
+            aiServer_->start();
+
         mainLoop();
         vkDeviceWaitIdle(device_);
+
+        if (aiServer_)
+            aiServer_->stop();
+
         cleanup();
     }
     catch (const std::exception& e)
     {
         std::cerr << "Fatal: " << e.what() << std::endl;
+        if (aiServer_)
+            aiServer_->stop();
         cleanup();
         return EXIT_FAILURE;
     }
@@ -220,27 +234,49 @@ void VulkanImGuiApp::mainLoop()
         Player* player = world_->getPlayer();
         AttackMode attack_mode = player->getAttackMode();
 
+        if (!player->isAlive() && aiMode_ && aiServer_)
+        {
+            restartGame(*world_);
+        }
+        else if (!player->isAlive()) drawDeathView();
 
-        // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
-        if (!player->isAlive()) drawDeathView();
-
-        if (world_->isGameWon())
+        if (world_->isGameWon() && aiMode_ && aiServer_)
+        {
+            restartGame(*world_);
+        }
+        else if (world_->isGameWon())
         {
             drawWinView();
         }
+
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
         if (player)
         {
             float dx = 0.0f, dy = 0.0f;
-            if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
-                dy -= 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS)
-                dy += 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS)
-                dx -= 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
-                dx += 1.0f;
+
+            if (aiMode_ && aiServer_)
+            {
+                int dir = aiServer_->consumeDirection();
+                switch (dir)
+                {
+                    case 0: dy = -1.0f; break; // up
+                    case 1: dy =  1.0f; break; // down
+                    case 2: dx = -1.0f; break; // left
+                    case 3: dx =  1.0f; break; // right
+                }
+            }
+            else
+            {
+                if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
+                    dy -= 1.0f;
+                if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS)
+                    dy += 1.0f;
+                if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS)
+                    dx -= 1.0f;
+                if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
+                    dx += 1.0f;
+            }
             player->applyInput(ImVec2(dx, dy));
 
             // change attack mode
@@ -983,4 +1019,10 @@ void VulkanImGuiApp::drawWinView()
         ImGui::EndPopup();
     }
     ImGui::PopStyleColor(1);
+}
+
+void VulkanImGuiApp::enableAiMode()
+{
+    aiMode_ = true;
+    aiServer_ = std::make_unique<AiServerApp>();
 }

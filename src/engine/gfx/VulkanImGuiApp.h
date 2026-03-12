@@ -10,6 +10,7 @@
 
 struct GLFWwindow;
 class Player;
+class AiServerApp;
 
 #include <cstdint>
 #include <optional>
@@ -18,8 +19,11 @@ class Player;
 class VulkanImGuiApp
 {
 public:
+    VulkanImGuiApp();
+    ~VulkanImGuiApp();
     int run();
     int runSmokeTest();
+    void enableAiMode();
 
 private:
     struct QueueFamilyIndices
@@ -83,6 +87,8 @@ private:
 
     std::unique_ptr<Assets> assets_ = nullptr;
     std::unique_ptr<World>  world_;
+    std::unique_ptr<AiServerApp> aiServer_;
+    bool                    aiMode_ = false;
     IconId                  heartIconId_ = -1;
     IconId                  bowIconId_ = -1;
     IconId                  swordIconId_ = -1;

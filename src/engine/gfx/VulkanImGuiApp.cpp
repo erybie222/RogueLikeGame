@@ -239,7 +239,9 @@ void VulkanImGuiApp::mainLoop()
 
         if (!player->isAlive() && aiMode_ && aiServer_)
         {
+            vkDeviceWaitIdle(device_);
             restartGame(*world_);
+            player = world_->getPlayer();
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_   = -1;
@@ -249,7 +251,9 @@ void VulkanImGuiApp::mainLoop()
 
         if (world_->isGameWon() && aiMode_ && aiServer_)
         {
+            vkDeviceWaitIdle(device_);
             restartGame(*world_);
+            player = world_->getPlayer();
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_   = -1;
@@ -260,13 +264,16 @@ void VulkanImGuiApp::mainLoop()
             drawWinView();
         }
 
-        if (aiServer_->consumeReset())
+        if (aiServer_ && aiServer_->consumeReset())
         {
+            vkDeviceWaitIdle(device_);
             restartGame(*world_);
+            player = world_->getPlayer();
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_ = -1;
             lastMapIndex_ = world_->getCurrentMapIndex();
+            std::cout << "[AI] Reset requested by AI server" << std::endl;
         }
 
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
@@ -469,11 +476,13 @@ void VulkanImGuiApp::mainLoop()
                 }
                 lastPlayerHp_ = currentHp;
                 
-                if (!visitedTiles_[tileX][tileY])
+                if (tileX >= 0 && tileX < 30 && tileY >= 0 && tileY < 16)
                 {
-                    //std::cout << "nowy tile: " << tileX << ", " << tileY << std::endl;
-                    visitedTiles_[tileX][tileY] = true;
-                    reward += 10.0f;
+                    if (!visitedTiles_[tileX][tileY])
+                    {
+                        visitedTiles_[tileX][tileY] = true;
+                        reward += 10.0f;
+                    }
                 }
                  
                 int currentMap = world_->getCurrentMapIndex();

@@ -35,5 +35,6 @@ void setupGame(World& world)
 
 void restartGame(World& world) {
     world.reset();
-    setupGame(world);
+    world.buildFromTmxMap();
+    auto& player = world.spawnPlayer({250.0f, 250.0f + World::UI_TOP_BAR_HEIGHT});
 }

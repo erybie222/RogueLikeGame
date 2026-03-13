@@ -8,6 +8,13 @@
 
 class World;
 
+struct Enemy
+{
+    int x;
+    int y;
+    int type;
+};
+
 class AiServerApp
 {
 public:
@@ -17,7 +24,8 @@ public:
     void stop();
 
     int consumeDirection();
-    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward);
+    bool consumeReset();
+    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies);
 
 private:
     void serverLoop();
@@ -27,4 +35,5 @@ private:
     std::thread serverThread_;
     std::atomic<bool> running_{false};
     std::atomic<int> lastDirection_{-1};
+    std::atomic<bool> resetRequested_{false};
 };

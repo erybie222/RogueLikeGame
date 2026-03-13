@@ -45,10 +45,15 @@ public:
         return state;
     }
 
+    // Attack classification (melee or ranged)
+    void setAttackClass(int c) { attackClass_ = c; }
+    int getAttackClass() const { return attackClass_; }
+
 private:
     std::unique_ptr<INpcController> controller;
     State                           state  = State::Idle;
     World*                          world_ = nullptr;
 
     float aggroRange = 400.f;
+    int attackClass_ = 0;
 };

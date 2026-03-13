@@ -41,12 +41,14 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
     int rangedAttackFrames    = 0;
     int rangedAttackTrigger   = 0;
 
+    int attackClass = 0;
     ItemId itemToDropId = ItemId::None;
 
     switch (type)
     {
         case NpcType::Skeleton_Archer:
             controller        = std::make_unique<RangeController>();
+            attackClass =1;
             maxHp             = 10;
             aggroRange        = 600.0f;
             maxSpeed          = 180.0f;
@@ -90,6 +92,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             break;
         case NpcType::Elite_Orc:
             controller         = std::make_unique<MeleeController>();
+
             maxHp              = 100;
             aggroRange         = 400.0f;
             maxSpeed           = 120.0f;
@@ -107,7 +110,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
     auto* npc = new Npc(static_cast<int>(type), width, height, pos.x, pos.y, maxHp);
 
     npc->setSolid(true);
-
+    npc->setAttackClass(attackClass);
     npc->setController(std::move(controller));
     npc->setWorld(&world);
     npc->setAggroRange(aggroRange);

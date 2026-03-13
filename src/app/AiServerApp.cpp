@@ -31,7 +31,13 @@ int AiServerApp::consumeDirection()
     return lastDirection_.exchange(-1);
 }
 
-void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward) {
+bool AiServerApp::consumeReset()
+{
+    return resetRequested_.exchange(false);
+}
+
+void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies)
+{
     std::lock_guard<std::mutex> lock(responseMutex_);
     response["hp"] = hp;
     response["alive"] = alive;
@@ -39,6 +45,19 @@ void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int player
     response["playerY"] = playerTileY;
     response["grid"] = grid;
     response["reward"] = reward;
+    nlohmann::json enemiesJson = nlohmann::json::array();
+    for (int i = 0; i < 5; i++)
+    {
+        if (i < enemies.size())
+        {
+            enemiesJson.push_back({{"x", enemies[i].x}, {"y", enemies[i].y}, {"type", enemies[i].type}});
+        }
+        else
+        {
+            enemiesJson.push_back({{"x", -1}, {"y", -1}, {"type", -1}});
+        }
+    }
+    response["enemies"] = enemiesJson;
 }
 
 void AiServerApp::serverLoop()
@@ -61,12 +80,6 @@ void AiServerApp::serverLoop()
 
             const std::string command(static_cast<const char*>(request.data()), request.size());
 
-            if (command == "quit")
-            {
-                socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
-                running_ = false;
-                break;
-            }
 
             if (command.size() == 1 && command[0] >= '0' && command[0] <= '4')
             {
@@ -74,6 +87,18 @@ void AiServerApp::serverLoop()
                 std::lock_guard<std::mutex> lock(responseMutex_);
                 socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
             }
+            else if (command == "reset")
+            {
+                resetRequested_.store(true);
+                std::lock_guard<std::mutex> lock(responseMutex_);
+                socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
+            }
+            else if (command == "quit")
+            {
+                socket.send(zmq::buffer(response.dump()), zmq::send_flags::none);
+                running_ = false;
+                break;
+            } 
             else
             {
                 socket.send(zmq::buffer(std::string("unknown_command")), zmq::send_flags::none);

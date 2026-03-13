@@ -12,6 +12,9 @@ struct GLFWwindow;
 class Player;
 class AiServerApp;
 
+// forward-declare global Enemy struct defined in app/AiServerApp.h
+struct Enemy;
+
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -100,7 +103,9 @@ private:
     int lastMapIndex_ = 0;
     int lastPlayerTileX_ = -1;
     int lastPlayerTileY_ = -1;
-
+    int lastEnemyCount_ = 0;
+    bool visitedTiles_[30][16] = {};
+    float framesInSameTile_ = 0;
     // High-level steps
     void initWindow();
     void initVulkan();

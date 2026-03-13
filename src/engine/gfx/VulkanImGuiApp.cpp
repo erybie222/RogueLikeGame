@@ -23,6 +23,7 @@
 #include "game/factory/ItemFactory.h"
 #include "utils/MathUtils.h"
 #include "app/AiServerApp.h"
+#include "game/npc/Npc.h"
 
 VulkanImGuiApp::VulkanImGuiApp() = default;
 VulkanImGuiApp::~VulkanImGuiApp() = default;
@@ -239,16 +240,42 @@ void VulkanImGuiApp::mainLoop()
         if (!player->isAlive() && aiMode_ && aiServer_)
         {
             restartGame(*world_);
+            memset(visitedTiles_, 0, sizeof(visitedTiles_));
+            lastEnemyCount_ = 0;
+            framesInSameTile_ = 0;
+            lastPlayerTileX_  = -1;
+            lastPlayerTileY_  = -1;
+            lastPlayerHp_ = world_->getPlayer()->getHp();
+            lastMapIndex_ = world_->getCurrentMapIndex();
         }
         else if (!player->isAlive()) drawDeathView();
 
         if (world_->isGameWon() && aiMode_ && aiServer_)
         {
             restartGame(*world_);
+            memset(visitedTiles_, 0, sizeof(visitedTiles_));
+            lastEnemyCount_ = 0;
+            framesInSameTile_ = 0;
+            lastPlayerTileX_  = -1;
+            lastPlayerTileY_  = -1;
+            lastPlayerHp_ = world_->getPlayer()->getHp();
+            lastMapIndex_ = world_->getCurrentMapIndex();
         }
         else if (world_->isGameWon())
         {
             drawWinView();
+        }
+
+        if (aiServer_->consumeReset())
+        {
+            restartGame(*world_);
+            memset(visitedTiles_, 0, sizeof(visitedTiles_));
+            lastEnemyCount_ = 0;
+            framesInSameTile_ = 0;
+            lastPlayerTileX_  = -1;
+            lastPlayerTileY_  = -1;
+            lastPlayerHp_ = world_->getPlayer()->getHp();
+            lastMapIndex_ = world_->getCurrentMapIndex();
         }
 
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
@@ -408,14 +435,40 @@ void VulkanImGuiApp::mainLoop()
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
             world_->update(dt);
+
             if (aiMode_ && aiServer_)
             {
+                std::vector<Enemy> enemies;
+                for (const auto& up : world_->entities())
+                {
+                    if (!up)
+                        continue;
+                    if (world_->getPlayer() && up.get() == world_->getPlayer())
+                        continue;
+                    auto* npc = dynamic_cast<Npc*>(up.get());
+                    if (npc && npc->isAlive())
+                    {
+                        ImVec2 np = npc->getPosition();
+                        int ex = static_cast<int>(np.x / 64.0f);
+                        int ey = static_cast<int>((np.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
+                        int etype = npc->getAttackClass() +1;
+                        enemies.push_back(Enemy{ex, ey, etype});
+                    }
+                }
+
                 ImVec2 pPos = player->getPosition();
                 int tileX = static_cast<int>(pPos.x / 64.0f);
                 int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
 
 
                 float reward = 0.0f;
+                
+                int currentEnemyCount = enemies.size();
+                if (currentEnemyCount < lastEnemyCount_)
+                {
+                    reward += (lastEnemyCount_ - currentEnemyCount) * 25.0f;
+                }
+                lastEnemyCount_ = currentEnemyCount;
 
 
                 int currentHp = player->getHp();
@@ -426,20 +479,24 @@ void VulkanImGuiApp::mainLoop()
                 {
                     if (tileX != lastPlayerTileX_ || tileY != lastPlayerTileY_)
                     {
-                        reward += 5.0f;
-                        
+                        reward += 10.0f;
+                        framesInSameTile_ = 0;
                     }
                     else
                     {
-                        reward -= 2.5f;
+                        framesInSameTile_++;
+                        float stayPenalty = std::min(0.01f * framesInSameTile_, 5.0f);
+                        reward -= stayPenalty;
                     }
-                    lastPlayerTileX_ = tileX;
-                    lastPlayerTileY_ = tileY;
                 }
-                else
+                lastPlayerTileX_ = tileX;
+                lastPlayerTileY_ = tileY;
+                
+                if (!visitedTiles_[tileX][tileY])
                 {
-                    lastPlayerTileX_ = tileX;
-                    lastPlayerTileY_ = tileY;
+                    //std::cout << "nowy tile: " << tileX << ", " << tileY << std::endl;
+                    visitedTiles_[tileX][tileY] = true;
+                    reward += 10.0f;
                 }
                  
                 int currentMap = world_->getCurrentMapIndex();
@@ -451,15 +508,14 @@ void VulkanImGuiApp::mainLoop()
 
                 if (world_->isGameWon())
                 {
-                    reward += 100.0f;
+                    reward += 1000.0f;
                 }
                 else if (!player->isAlive())
                 {
                     reward -= 100.0f;
+                    //std::cout << "Player died. Reward: " << reward << std::endl;
                 }
-
-                
-                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward);
+                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward, enemies);
             }
         }
 

@@ -242,11 +242,8 @@ void VulkanImGuiApp::mainLoop()
             restartGame(*world_);
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
-            framesInSameTile_ = 0;
-            lastPlayerTileX_  = -1;
-            lastPlayerTileY_  = -1;
-            lastPlayerHp_ = world_->getPlayer()->getHp();
-            lastMapIndex_ = world_->getCurrentMapIndex();
+            lastPlayerHp_   = -1;
+            lastMapIndex_   = world_->getCurrentMapIndex();
         }
         else if (!player->isAlive()) drawDeathView();
 
@@ -255,11 +252,8 @@ void VulkanImGuiApp::mainLoop()
             restartGame(*world_);
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
-            framesInSameTile_ = 0;
-            lastPlayerTileX_  = -1;
-            lastPlayerTileY_  = -1;
-            lastPlayerHp_ = world_->getPlayer()->getHp();
-            lastMapIndex_ = world_->getCurrentMapIndex();
+            lastPlayerHp_   = -1;
+            lastMapIndex_   = world_->getCurrentMapIndex();
         }
         else if (world_->isGameWon())
         {
@@ -271,10 +265,7 @@ void VulkanImGuiApp::mainLoop()
             restartGame(*world_);
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
-            framesInSameTile_ = 0;
-            lastPlayerTileX_  = -1;
-            lastPlayerTileY_  = -1;
-            lastPlayerHp_ = world_->getPlayer()->getHp();
+            lastPlayerHp_ = -1;
             lastMapIndex_ = world_->getCurrentMapIndex();
         }
 
@@ -461,7 +452,7 @@ void VulkanImGuiApp::mainLoop()
                 int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
 
 
-                float reward = 0.0f;
+                float reward = -0.1f;
                 
                 int currentEnemyCount = enemies.size();
                 if (currentEnemyCount < lastEnemyCount_)
@@ -471,26 +462,12 @@ void VulkanImGuiApp::mainLoop()
                 lastEnemyCount_ = currentEnemyCount;
 
 
-                int currentHp = player->getHp();
-                reward += (currentHp - lastPlayerHp_) * 0.5f;
-                lastPlayerHp_ = currentHp;
-
-                if (lastPlayerTileX_ != -1 && lastPlayerTileY_ != -1)
+                int currentHp = world_->getPlayer()->getHp();
+                if (lastPlayerHp_ != -1)
                 {
-                    if (tileX != lastPlayerTileX_ || tileY != lastPlayerTileY_)
-                    {
-                        reward += 10.0f;
-                        framesInSameTile_ = 0;
-                    }
-                    else
-                    {
-                        framesInSameTile_++;
-                        float stayPenalty = std::min(0.01f * framesInSameTile_, 5.0f);
-                        reward -= stayPenalty;
-                    }
+                    reward += (currentHp - lastPlayerHp_) * 5.0f;
                 }
-                lastPlayerTileX_ = tileX;
-                lastPlayerTileY_ = tileY;
+                lastPlayerHp_ = currentHp;
                 
                 if (!visitedTiles_[tileX][tileY])
                 {
@@ -504,6 +481,7 @@ void VulkanImGuiApp::mainLoop()
                 {
                     reward += 50.0f;
                     lastMapIndex_ = currentMap;
+                    memset(visitedTiles_, 0, sizeof(visitedTiles_));
                 }
 
                 if (world_->isGameWon())

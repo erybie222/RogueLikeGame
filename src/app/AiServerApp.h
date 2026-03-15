@@ -13,6 +13,7 @@ struct Enemy
     int x;
     int y;
     int type;
+    int hp;
 };
 
 class AiServerApp
@@ -25,7 +26,7 @@ public:
 
     int consumeDirection();
     bool consumeReset();
-    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies);
+    void updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies, bool key);
 
 private:
     void serverLoop();

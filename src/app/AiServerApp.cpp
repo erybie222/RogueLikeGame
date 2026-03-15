@@ -36,7 +36,7 @@ bool AiServerApp::consumeReset()
     return resetRequested_.exchange(false);
 }
 
-void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies)
+void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int playerTileY, const std::vector<std::vector<int>>& grid, float reward, std::vector<Enemy> enemies, bool key)
 {
     std::lock_guard<std::mutex> lock(responseMutex_);
     response["hp"] = hp;
@@ -50,14 +50,15 @@ void AiServerApp::updateResponse(int hp, bool alive, int playerTileX, int player
     {
         if (i < enemies.size())
         {
-            enemiesJson.push_back({{"x", enemies[i].x}, {"y", enemies[i].y}, {"type", enemies[i].type}});
+            enemiesJson.push_back({{"x", enemies[i].x}, {"y", enemies[i].y}, {"type", enemies[i].type}, {"hp", enemies[i].hp}});
         }
         else
         {
-            enemiesJson.push_back({{"x", -1}, {"y", -1}, {"type", -1}});
+            enemiesJson.push_back({{"x", -1}, {"y", -1}, {"type", -1}, {"hp", -1}});
         }
     }
     response["enemies"] = enemiesJson;
+    response["key"] = key;
 }
 
 void AiServerApp::serverLoop()

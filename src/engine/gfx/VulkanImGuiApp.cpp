@@ -245,6 +245,8 @@ void VulkanImGuiApp::mainLoop()
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_   = -1;
+            playerHasKey_   = false;
+            playerHadKey_   = false;
             lastMapIndex_   = world_->getCurrentMapIndex();
         }
         else if (!player->isAlive()) drawDeathView();
@@ -257,6 +259,8 @@ void VulkanImGuiApp::mainLoop()
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_   = -1;
+            playerHasKey_   = false;
+            playerHadKey_   = false;
             lastMapIndex_   = world_->getCurrentMapIndex();
         }
         else if (world_->isGameWon())
@@ -272,6 +276,8 @@ void VulkanImGuiApp::mainLoop()
             memset(visitedTiles_, 0, sizeof(visitedTiles_));
             lastEnemyCount_ = 0;
             lastPlayerHp_ = -1;
+            playerHasKey_   = false;
+            playerHadKey_   = false;
             lastMapIndex_ = world_->getCurrentMapIndex();
             std::cout << "[AI] Reset requested by AI server" << std::endl;
         }
@@ -426,6 +432,35 @@ void VulkanImGuiApp::mainLoop()
                     }
                 }
             }
+            else if (aiMode_ && aiServer_ && playerHasKey_)
+            {
+                auto* map = world_->getMap(world_->getCurrentMapLevel(), world_->getCurrentMapIndex());
+                if (map && map->isLockedDoors())
+                {
+                    ImVec2 p = player->getPosition();
+                    float pw = static_cast<float>(player->getWidth());
+                    float ph = static_cast<float>(player->getHeight());
+                    auto&  inventory = player->getInventory();
+                    LockedDoorInfo info = map->getLockedDoorInfo();
+                    if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY &&
+                        p.y < info.posY + info.height)
+                    {
+                        for (int i = 0; i < inventory.getItemCount(); i++)
+                        {
+                            Item* item = inventory.getItem(i);
+                            if (item && item->getName() == "Key")
+                            {
+                                inventory.removeItem(i);
+                                map->setLockedDoors(false); // for testing purposes
+                                break;
+                            }
+                        }
+                        playerHasKey_ = false;
+                        playerHadKey_ = true;
+                    }
+                }
+
+            }
             lastE = ePressed;
         }
         }
@@ -433,9 +468,10 @@ void VulkanImGuiApp::mainLoop()
         if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
             world_->update(dt);
-
+            
             if (aiMode_ && aiServer_)
             {
+                int currentEnemiesHp = -1;
                 std::vector<Enemy> enemies;
                 for (const auto& up : world_->entities())
                 {
@@ -450,7 +486,12 @@ void VulkanImGuiApp::mainLoop()
                         int ex = static_cast<int>(np.x / 64.0f);
                         int ey = static_cast<int>((np.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
                         int etype = npc->getAttackClass() +1;
-                        enemies.push_back(Enemy{ex, ey, etype});
+                        int hp = npc->getHp();
+                        if (currentEnemiesHp == -1)
+                            currentEnemiesHp = hp;
+                        else
+                            currentEnemiesHp += hp;
+                        enemies.push_back(Enemy{ex, ey, etype,hp});
                     }
                 }
 
@@ -458,51 +499,85 @@ void VulkanImGuiApp::mainLoop()
                 int tileX = static_cast<int>(pPos.x / 64.0f);
                 int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
 
+                float n_steps = 4000;
 
-                float reward = -0.1f;
+                float reward = -50.0f / n_steps;
                 
+                // KEY
+                if (!playerHasKey_)
+                {
+                    auto& inventory = player->getInventory();
+                    for (int i = 0; i < inventory.getItemCount(); i++)
+                    {
+                        Item* item = inventory.getItem(i);
+                        if (item && item->getName() == "Key")
+                        {
+                            reward += 40.0f;
+                            playerHasKey_ = true;
+                            break;
+                        }
+                    }
+                }
+                if (playerHadKey_ && !playerHasKey_)
+                {
+                    reward += 40.0f;
+                    playerHadKey_ = false;
+                }
+
+                // enemies and hp
                 int currentEnemyCount = enemies.size();
                 if (currentEnemyCount < lastEnemyCount_)
                 {
-                    reward += (lastEnemyCount_ - currentEnemyCount) * 25.0f;
+                    reward += (lastEnemyCount_ - currentEnemyCount) * 10.0f;
                 }
                 lastEnemyCount_ = currentEnemyCount;
+                if (currentEnemiesHp != -1 && lastEnemiesHpSum_ != -1)
+                {
+                    int hpDiff = lastEnemiesHpSum_ - currentEnemiesHp;
+                    if (hpDiff > 0)
+                        reward += hpDiff * 0.5f;
+                }
+                lastEnemiesHpSum_ = currentEnemiesHp;
 
 
+                //player damage
                 int currentHp = world_->getPlayer()->getHp();
                 if (lastPlayerHp_ != -1)
                 {
-                    reward += (currentHp - lastPlayerHp_) * 5.0f;
+                    reward += (currentHp - lastPlayerHp_) * 0.5f;
                 }
                 lastPlayerHp_ = currentHp;
                 
+
+                // exploration
                 if (tileX >= 0 && tileX < 30 && tileY >= 0 && tileY < 16)
                 {
                     if (!visitedTiles_[tileX][tileY])
                     {
                         visitedTiles_[tileX][tileY] = true;
-                        reward += 10.0f;
+                        reward += 25.0f / 480.0f;
                     }
                 }
                  
+                 // map progression
                 int currentMap = world_->getCurrentMapIndex();
                 if (currentMap != lastMapIndex_)
                 {
-                    reward += 50.0f;
+                    reward += 100.0f;
                     lastMapIndex_ = currentMap;
                     memset(visitedTiles_, 0, sizeof(visitedTiles_));
                 }
 
                 if (world_->isGameWon())
                 {
-                    reward += 1000.0f;
+                    reward += 500.0f;
                 }
                 else if (!player->isAlive())
                 {
                     reward -= 100.0f;
                     //std::cout << "Player died. Reward: " << reward << std::endl;
                 }
-                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward, enemies);
+                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward, enemies, playerHasKey_);
             }
         }
 

@@ -92,7 +92,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             break;
         case NpcType::Elite_Orc:
             controller         = std::make_unique<MeleeController>();
-
+            attackClass = 2;
             maxHp              = 100;
             aggroRange         = 400.0f;
             maxSpeed           = 120.0f;

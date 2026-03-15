@@ -102,7 +102,10 @@ private:
     int lastPlayerHp_ = -1;
     int lastMapIndex_ = 0;
     int lastEnemyCount_ = 0;
+    int lastEnemiesHpSum_ = -1;
     bool visitedTiles_[30][16] = {};
+    bool playerHasKey_ = false;
+    bool playerHadKey_ = false;
     // High-level steps
     void initWindow();
     void initVulkan();

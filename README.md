@@ -136,16 +136,17 @@ Each map can contain:
 
 ---
 
-## TODO / Roadmap
+## How to Play (Quick Start)
 
-- [ ] More enemy types
-- [ ] Player skill system
-- [ ] Procedural dungeon generation
-- [ ] Save/load progress
-- [ ] Sound effects and music
+You don't need to compile the project to play. The game has been prepared as a Standalone executable.
+
+1. Go to the [Releases](../../releases) tab on GitHub.
+2. Download the latest `.zip` package with the game.
+3. Extract the archive anywhere on your computer.
+4. Make sure that the `RogueLikeGame.exe` file, the `assets` folder (containing textures), and the other files (`.dll`,`.pdb`) are all located in the same folder.
+5. Run the `RogueLikeGame.exe` file and enjoy the game!
 
 ---
-
 ## Authors
 
 - GitHub: [@erybie222](https://github.com/erybie222)
